@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <record id="crm_form" model="ir.ui.view">
+        <field name="name">crm.configurator</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <!-- <xpath expr="//sheet/notebook" position="inside">
+               <page string="Products">
+                  <field name="material_line_ids">
+                    <list editable="bottom">
+                        <field name="lead_id" invisible="1"/>
+                        <field name="product_template_id" widget ="crm_product_many2one"/>
+                        <field name="product_template_attribute_value_ids" widget="many2many_tags"/>
+                        <field name="product_no_variant_attribute_value_ids" invisible="1"/> 
+                        <field name="product_id" />
+                        <field name="product_category_id"/>
+                        <field name="quantity"/>
+                        <field name="product_uom_id"/>
+                        <field name="width"/>
+                        <field name="thickness"/>
+                        <field name="raisin_type_id"/>
+                        <field name="height"/>
+                        <field name="length"/>
+                    </list>
+                </field>
+                </page>
+            </xpath> -->
+            <!-- ✅ Correct location: inside the tree of the One2many field -->
+            <xpath expr="//field[@name='material_line_ids']/list/field[@name='product_template_id']" position="after">
+                <field name="product_config_mode" invisible="1"/>
+                <field name="product_custom_attribute_value_ids" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

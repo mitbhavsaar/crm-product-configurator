@@ -1,0 +1,26 @@
+<!-- crm_product_field_templates.xml -->
+<templates xml:space="preserve">
+    <t t-name="CrmMaterialLineProductField" owl="2">
+        <div class="o_field_widget o_field_many2one o_field_widget_editable">
+            <t t-if="!props.readonly">
+                <Many2OneField
+                    name="'product_template_id'"
+                    record="props.record"
+                    readonly="false"
+                    context="props.context"
+                    t-on-many2one-value-changed="onProductTemplateChange"
+                />
+                <t t-if="props.record.data.product_template_id">
+                    <button type="button" class="btn btn-sm ms-1"
+                        t-on-click="onEditConfiguration"
+                        t-att-title="props.record.data.product_template_id[1]">
+                        <i class="fa fa-cog"/>
+                    </button>
+                </t>
+            </t>
+            <t t-if="props.readonly">
+                <span t-esc="props.record.data.product_template_id[1]"/>
+            </t>
+        </div>
+    </t>
+</templates>
