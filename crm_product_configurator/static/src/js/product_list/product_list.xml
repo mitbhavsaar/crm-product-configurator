@@ -7,15 +7,16 @@
             <thead t-if="!this.props.areProductsOptional">
                 <tr>
                     <th class="px-0 border-bottom-0" colspan="2">Product</th>
-                    <th class="px-0 text-end border-bottom-0">Quantity</th>
-                    <th class="px-0 text-end border-bottom-0">Price</th>
+                    <th class="px-0 text-end border-bottom-0 d-none">Quantity</th>
+                    <th class="px-0 text-end border-bottom-0 d-none">Price</th>
                 </tr>
             </thead>
             <tbody class="border-top-0">
                 <tr t-foreach="this.props.products" t-as="product" t-key="product.product_tmpl_id">
-                    <Product t-props="product" optional="this.props.areProductsOptional"/>
+                    <Product t-props="product" optional="this.props.areProductsOptional" 
+                        dimensionRows="this.props.dimensionRows ? this.props.dimensionRows[product.product_tmpl_id] : []"/>
                 </tr>
-                <tr t-if="!this.props.areProductsOptional">
+                <tr t-if="!this.props.areProductsOptional" class="d-none">
                     <td colspan="4" class="border-bottom-0 text-end">
                         <h4>Total: <span t-out="getFormattedTotal()"/></h4>
                     </td>

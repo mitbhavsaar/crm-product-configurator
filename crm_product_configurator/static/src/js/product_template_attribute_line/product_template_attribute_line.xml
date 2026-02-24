@@ -2,31 +2,75 @@
 <templates xml:space="preserve">
     <!-- Product attributes line template -->
     <t t-name="crmProductConfigurator.ptal">
-        <div name="ptal" t-attf-class="#{this.props.attribute_values.length === 1 &amp;&amp; hasPTAVCustom() ? 'd-flex' : ''}">
-        <!-- If the attribute line contains only one attribute value, we don't show the attribute
-             value template or the attribute line title unless the single attribute value is custom,
-             whereas in this case, only the title of the attribute line and the custom value
-             template are rendered. -->
-            <div class="d-flex flex-column flex-lg-row gap-2 mb-2">
-                <label
-                    t-if="this.props.attribute_values.length === 1 &amp;&amp; isSelectedPTAVCustom() || this.props.attribute_values.length &gt; 1"
-                    t-out="this.props.attribute.name"
-                    t-attf-class="fw-bold text-break #{this.props.attribute_values.length === 1 &amp;&amp; hasPTAVCustom() ? '' : 'w-lg-25'}"/>
-                <t t-if="this.props.attribute_values.length > 1" t-call="{{getPTAVTemplate()}}"/>
+        <div name="ptal" 
+             t-attf-class="#{(this.props.attribute_values.length === 1 &amp;&amp; hasPTAVCustom()) || isSelectedPTAVCustom() ? 'd-flex' : ''} #{this.props.attribute.pair_with_previous || this.props.attribute.display_type === 'strictly_numeric' || isSelectedPTAVCustom() ? 'w-auto' : 'w-100'}">
+            <!--
+                Product Configurator Smart Logic:
+                1) Attribute display UI changes automatically based on display_type (radio/select/pills/color/multi/m2o/file_upload/strictly_numeric).
+                2) Single value → direct show OR custom value input, multiple values → proper selection UI.
+                3) Numeric, M2O, and File Upload attributes always show their respective special input.
+                4) Pair-with-Previous enables side-by-side display for grouped attributes without layout breakage.
+            -->
+            <div class="d-flex gap-2 ptal-inner-container" t-att-class="(this.props.attribute.pair_with_previous || this.props.attribute.display_type === 'strictly_numeric' || isSelectedPTAVCustom())
+                              ? 'flex-row align-items-center justify-content-start flex-nowrap'
+                              : 'flex-row align-items-center flex-wrap flex-md-nowrap mb-2'">
+
+
+
+            <!-- LABEL: Hide redundant Unit labels on mobile to save space -->
+            <label t-if="this.props.attribute.pair_with_previous !== true"
+                t-out="this.props.attribute.name"
+                class="ptal-label fw-bold mb-0 flex-shrink-0"
+                t-att-class="{'d-none d-md-block': this.props.attribute.name.toLowerCase() === 'units' or this.props.attribute.name.toLowerCase() === 'uom'}"
+                t-att-title="this.props.attribute.name" />
+                    
+                <!-- CASE 1: FILE UPLOAD ALWAYS SHOW INPUT -->
+                <t t-if="this.props.attribute.display_type === 'file_upload'">
+                    <t t-call="crmProductConfigurator.ptav-file-upload"/>
+                </t>
+                <!-- CASE: M2O SELECTOR ALWAYS SHOW DROPDOWN -->
+                <t t-elif="this.props.attribute.display_type === 'm2o'">
+                    <t t-call="crmProductConfigurator.ptav-m2o"/>
+                </t>
+                <!-- CASE: STRICTLY NUMERIC CUSTOM INPUT -->
+                <t t-elif="isSelectedPTAVCustom() and this.props.attribute.display_type === 'strictly_numeric'">
+                    <t t-call="crmProductConfigurator.ptav-strictly-numeric"/>
+                </t>
+
+                <!-- CASE 2: MULTIPLE VALUES → show radio/select UI -->
+                <t t-elif="this.props.attribute_values.length > 1">
+                    <t t-call="{{getPTAVTemplate()}}"/>
+                </t>
+
+                <!-- CASE 3: SINGLE VALUE → CUSTOM TYPE → SHOW TEXT INPUT -->
+                <t t-elif="isSelectedPTAVCustom()">
+                    <input class="o_input mb-2 text-center ptal-custom-input"
+                        type="text"
+                        placeholder="Enter value"
+                        t-att-value="this.props.customValue or ''"
+                        t-on-change="updateCustomValue"/>
+                </t>
+                
+
+                <!-- CASE 4: SINGLE VALUE NORMAL FIXED VALUE → show name -->
+                <t t-else="">
+                    <span><t t-out="this.props.attribute_values[0].name"/></span>
+                </t>
+
             </div>
-            <input
+            <!-- <input
                 class="o_input w-75 mb-4 ms-lg-auto"
                 type="text"
                 placeholder="Enter a customized value"
                 t-if="hasPTAVCustom &amp;&amp; isSelectedPTAVCustom()"
                 t-att-value="this.props.customValue"
                 t-on-change="updateCustomValue"
-            />
+            /> -->
         </div>
     </t>
     <!-- Attributes value templates -->
     <t t-name="crmProductConfigurator.ptav-select">
-        <select class="o_input w-50 flex-grow-1"
+        <select class="o_input text-center ptal-select"
             t-on-change="updateSelectedPTAV"
             t-att-name="'ptal-' + this.props.id">
             <option
@@ -38,11 +82,18 @@
                 t-out="getPTAVSelectName(ptav)"
                 t-att-class="{ 'css_not_available': ptav.excluded }"/>
         </select>
+        
+        <!-- Conditional File Upload Widget -->
+        <t t-if="shouldShowConditionalFileUpload()">
+            <div class="mt-3 ps-3 border-start border-2 border-primary">
+                <t t-call="crmProductConfigurator.conditional-file-upload"/>
+            </div>
+        </t>
     </t>
     <t t-name="crmProductConfigurator.ptav-radio">
-        <ul class="list-unstyled flex-grow-1 m-0">
+        <ul class="list-unstyled m-0 d-flex flex-row flex-wrap">
             <li t-foreach="this.props.attribute_values" t-as="ptav" t-key="ptav.id"
-                class="mb-2">
+                class="m-0 me-4">
                 <div class="form-check">
                     <label
                         class="form-check-label d-inline-flex align-items-center"
@@ -52,7 +103,7 @@
                     </label>
                     <input
                         type="radio"
-                        class="form-check-input"
+                        class="form-check-input "
                         t-att-id="ptav.id"
                         t-att-value="ptav.id"
                         t-att-checked="this.props.selected_attribute_value_ids.includes(ptav.id)"
@@ -61,6 +112,13 @@
                 </div>
             </li>
         </ul>
+        
+        <!-- Conditional File Upload Widget -->
+        <t t-if="shouldShowConditionalFileUpload()">
+            <div class="mt-3 ps-3 border-start border-2 border-primary">
+                <t t-call="crmProductConfigurator.conditional-file-upload"/>
+            </div>
+        </t>
     </t>
     <t t-name="crmProductConfigurator.ptav-pills">
          <ul class="list-inline list-unstyled flex-grow-1 mb-0">
@@ -132,4 +190,132 @@
             </li>
         </ul>
     </t>
+    <t t-name="crmProductConfigurator.ptav-file-upload">
+        <div class="d-flex flex-column align-items-start gap-2 w-100">
+            <!-- MAIN ATTACH BUTTON (Visible only if no files) -->
+            <label t-if="getFiles().length === 0" 
+                class="o_premium_add_more mb-0"
+                style="margin-left: 5px; width: 120px; min-width: 90px; height: 26px; font-size: 10px; padding: 0 8px !important;">
+                <i class="fa fa-paperclip" style="font-size: 9px; width: 14px; height: 14px;"/> <span>Attach Files</span>
+                <input type="file" class="d-none"
+                    multiple="multiple"
+                    t-on-change="uploadFile"
+                    accept=".pdf,.png,.jpg,.jpeg,.svg,.doc,.docx,.xls,.xlsx,.dwg,.dxf"/>
+            </label>
+
+            <!-- SIDE-BY-SIDE LAYOUT (Visible if files exist) -->
+            <div t-if="getFiles().length > 0" class="d-flex align-items-start gap-3 w-100 mt-1">
+                <!-- Left: File List -->
+                <div class="d-flex flex-column gap-2 flex-grow-1">
+                    <div t-foreach="getFiles()" t-as="file" t-key="file_index" 
+                         class="d-flex align-items-center justify-content-between p-2 border rounded bg-light"
+                         style="font-size: 13px;">
+                        <span class="text-truncate" style="max-width: 200px;">
+                            <i class="fa fa-file me-2 text-primary"/>
+                            <t t-out="file.name"/>
+                        </span>
+                        <i class="fa fa-times text-danger cursor-pointer ms-2" 
+                           title="Remove file"
+                           t-on-click="() => this.removeUploadedFile(file_index)"/>
+                    </div>
+                </div>
+
+                <!-- Right: Large Add More Button -->
+                <label class="o_premium_add_more">
+                    <i class="fa fa-plus"/>
+                    <span>Add More</span>
+                    <input type="file" class="d-none"
+                        multiple="multiple"
+                        t-on-change="uploadFile"
+                        accept=".pdf,.png,.jpg,.jpeg,.svg,.doc,.docx,.xls,.xlsx,.dwg,.dxf"/>
+                </label>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="crmProductConfigurator.ptav-m2o">
+        <select
+            class="o_input text-center ptal-m2o-select"
+            t-on-change="updateSelectedM2O"
+            t-att-name="'ptal-' + this.props.id">
+
+            <option value="">-- Select --</option>
+
+            <option t-foreach="this.props.attribute.m2o_values or []"
+                t-as="rec"
+                t-key="rec.id"
+                t-att-value="rec.id"
+                t-att-selected="getSelectedM2OId() === rec.id">
+                <t t-out="rec.name"/>
+            </option>
+        </select>
+
+        <!-- 🔥 NEW: Gel-coat Required Red Warning -->
+        <t t-if="isMissingRequiredGelCoat">
+            <div class="text-danger fw-bold mt-1" style="font-size: 13px;">
+                <i class="fa fa-warning me-1"/> Gel-coat selection is required!
+            </div>
+        </t>
+    </t>
+
+    <!-- Conditional File Upload Template -->
+    <t t-name="crmProductConfigurator.conditional-file-upload">
+        <div class="d-flex flex-column align-items-start gap-2 w-100">
+            <!-- MAIN ATTACH BUTTON -->
+            <label t-if="getConditionalFiles().length === 0" 
+                class="o_premium_add_more btn-outline-success mb-0"
+                style="width: 90px; min-width: 90px; height: 26px; font-size: 10px; padding: 0 8px !important;">
+                <i class="fa fa-paperclip" style="font-size: 9px; width: 14px; height: 14px;"/> <span>Attach BOQ</span>
+                <input type="file" class="d-none"
+                    multiple="multiple"
+                    t-on-change="uploadConditionalFile"
+                    accept=".pdf,.png,.jpg,.jpeg,.svg,.doc,.docx,.xls,.xlsx,.dwg,.dxf"/>
+            </label>
+
+            <!-- SIDE-BY-SIDE LAYOUT (Visible if files exist) -->
+            <div t-if="getConditionalFiles().length > 0" class="d-flex align-items-start gap-3 w-100 mt-1">
+                <!-- Left: File List -->
+                <div class="d-flex flex-column gap-2 flex-grow-1">
+                    <div t-foreach="getConditionalFiles()" t-as="file" t-key="file_index" 
+                         class="d-flex align-items-center justify-content-between p-2 border rounded bg-light"
+                         style="font-size: 13px;">
+                        <span class="text-truncate" style="max-width: 200px;">
+                            <i class="fa fa-file-excel-o me-2 text-success"/>
+                            <t t-out="file.name"/>
+                        </span>
+                        <i class="fa fa-times text-danger cursor-pointer ms-2" 
+                           title="Remove file"
+                           t-on-click="() => this.removeConditionalFile(file_index)"/>
+                    </div>
+                </div>
+
+                <!-- Right: Large Add More Button -->
+                <label class="o_premium_add_more btn-outline-success">
+                    <i class="fa fa-plus"/>
+                    <span>Add More BOQ</span>
+                    <input type="file" class="d-none"
+                        multiple="multiple"
+                        t-on-change="uploadConditionalFile"
+                        accept=".pdf,.png,.jpg,.jpeg,.svg,.doc,.docx,.xls,.xlsx,.dwg,.dxf"/>
+                </label>
+            </div>
+        </div>
+    </t>
+
+    <!-- STRICTLY NUMERIC CUSTOM INPUT -->
+    <t t-name="crmProductConfigurator.ptav-strictly-numeric">
+        <div class="d-flex flex-column strictly-numeric-container">
+            <input class="o_input mb-1 text-center"
+                type="text"
+                placeholder="Enter value"
+                t-att-value="this.props.customValue || ''"
+                t-on-input="validateNumeric"/>
+            <t t-if="this.warningState.numeric">
+                <span class="text-danger d-block" style="font-size: 11px;">
+                    <t t-out="this.warningState.numeric"/>
+                </span>
+            </t>
+        </div>
+    </t>
+
 </templates>

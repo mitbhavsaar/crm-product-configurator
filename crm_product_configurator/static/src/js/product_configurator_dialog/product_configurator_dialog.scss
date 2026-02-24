@@ -1,0 +1,109 @@
+.pdf-viewer-container {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: #525659;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-canvas {
+    transition: transform 0.2s ease;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.pdf-viewer-controls {
+    background: #f8f9fa !important;
+    z-index: 10;
+}
+
+.pdf-viewer-controls .btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pdf-viewer-controls .badge {
+    font-weight: 500;
+}
+
+// =============================================
+// 💻 LAPTOP / DESKTOP (≥1200px)  – unchanged
+// =============================================
+.modal-dialog.modal-xl {
+    @media (min-width: 1200px) {
+        &:has(.o_crm_configurator_dialog_content) {
+            max-width: 65% !important;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+}
+
+// =============================================
+// 📱 TABLET (768px–1199px) – iPad Mini/Air/Pro
+// =============================================
+@media (min-width: 768px) and (max-width: 1199px) {
+
+    .modal-dialog:has(.o_crm_configurator_dialog_content),
+    .modal-dialog.modal-xl {
+        max-width: 96vw !important;
+        margin: 0.75rem auto !important;
+    }
+
+    // Give modal body scroll so form never clips
+    .modal-dialog:has(.o_crm_configurator_dialog_content) .modal-body {
+        max-height: 78vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px 14px !important;
+    }
+
+    // PDF panel drops below the form on tablets, not side-by-side
+    .o_crm_configurator_dialog_content .col-md-7,
+    .o_crm_configurator_dialog_content .col-md-5 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding-right: 0 !important;
+    }
+
+    // PDF viewer height on tablet
+    .o_crm_configurator_dialog_content .col-md-5[style] {
+        height: 50vh !important;
+    }
+}
+
+// =============================================
+// 📱 SMALL PHONE / FOLD (≤767px)
+// =============================================
+@media (max-width: 767px) {
+
+    .modal-dialog:has(.o_crm_configurator_dialog_content),
+    .modal-dialog.modal-xl {
+        max-width: 100vw !important;
+        margin: 0 !important;
+    }
+
+    .modal-content {
+        border-radius: 0 !important;
+    }
+
+    // Full height scrollable body on phones
+    .modal-dialog:has(.o_crm_configurator_dialog_content) .modal-body {
+        max-height: 82vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 10px !important;
+    }
+
+    // Stack PDF below form
+    .o_crm_configurator_dialog_content .col-md-7,
+    .o_crm_configurator_dialog_content .col-md-5 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding-right: 0 !important;
+    }
+
+    // PDF viewer height on phone
+    .o_crm_configurator_dialog_content .col-md-5[style] {
+        height: 45vh !important;
+    }
+}

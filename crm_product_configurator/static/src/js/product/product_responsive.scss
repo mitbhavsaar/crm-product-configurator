@@ -1,0 +1,268 @@
+// ==========================================================================
+// Dimension Row – FULLY RESPONSIVE
+// Phone stacked | Tablet compact inline | Laptop unchanged
+// ==========================================================================
+
+// --- Row container ---
+.dim-row {
+    overflow: visible;
+    min-width: 0;
+    align-items: center;
+}
+
+// --- Each field group ---
+.dim-field {
+    flex: 0 0 auto;
+    min-width: 0;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+// --- Labels ---
+.dim-label {
+    white-space: nowrap;
+    line-height: 1.2;
+    font-size: 13px;
+    width: auto;
+    min-width: 52px;
+    text-align: left !important;
+}
+
+// --- Input-group ---
+.dim-input-group {
+    min-width: 0;
+    flex: 0 0 120px;
+    width: 120px;
+    max-width: 120px;
+}
+
+// --- Numeric input ---
+.dim-input {
+    min-width: 0;
+    flex: 1 1 auto;
+    width: 1%;
+}
+
+// --- UoM select ---
+.dim-select {
+    flex-shrink: 0;
+    width: 72px;
+    min-width: 72px;
+    max-width: 90px;
+    border: none !important;
+    box-shadow: none !important;
+    padding-right: 20px !important; // Breathing room for arrow
+    cursor: pointer;
+    background-color: transparent !important;
+    font-size: 14px !important;
+}
+
+// --- Add / Remove icon buttons ---
+.dim-actions {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+// ==========================================================================
+// 📱 SMALL PHONE / FOLD  (≤575px)  – Stack each field as a full row
+// ==========================================================================
+@media (max-width: 575px) {
+
+    .dim-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        overflow-x: visible;
+    }
+
+    .dim-field {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+
+    .dim-label {
+        width: 62px;
+        min-width: 62px;
+        font-size: 12px;
+    }
+
+    .dim-input-group {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    .dim-select {
+        width: 56px;
+        min-width: 56px;
+    }
+
+    .dim-actions {
+        // Align "+" to the right
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+    }
+
+    // Odoo attribute rows
+    .o_crm_product_configurator_table .o_row {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+    }
+}
+
+// ==========================================================================
+// 📱 SMALL TABLET / FOLD LANDSCAPE  (576px–767px) – 2 compact per row
+// ==========================================================================
+@media (min-width: 576px) and (max-width: 767px) {
+
+    .dim-row {
+        flex-wrap: wrap !important;
+        gap: 6px;
+        overflow-x: visible;
+    }
+
+    .dim-field {
+        flex: 0 0 calc(50% - 6px) !important;
+        min-width: 0;
+    }
+
+    .dim-label {
+        font-size: 12px;
+        min-width: 50px;
+        width: 50px;
+    }
+
+    .dim-input-group {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0;
+    }
+
+    .dim-select {
+        width: 48px;
+        min-width: 48px;
+    }
+
+    // Odoo attribute rows
+    .o_crm_product_configurator_table .o_row {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .o_crm_product_configurator_table .o_form_label {
+        width: 100px;
+        min-width: 100px;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+    }
+
+    .o_crm_product_configurator_table .o_field_widget {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .o_crm_product_configurator_table .input-group {
+        flex-wrap: nowrap !important;
+    }
+}
+
+// ==========================================================================
+// 📟 TABLET  (768px–991px) – iPad Mini / Air / Pro – all 3 inline, compact
+// ==========================================================================
+@media (min-width: 768px) and (max-width: 991px) {
+
+    .dim-row {
+        flex-wrap: nowrap !important;
+        gap: 6px;
+        overflow-x: auto; // fallback for very small tablets
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dim-field {
+        flex: 1 1 0 !important; // distribute equally
+        min-width: 0;
+    }
+
+    .dim-label {
+        font-size: 12px;
+        min-width: 48px;
+        width: 48px;
+    }
+
+    .dim-input-group {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0;
+    }
+
+    .dim-select {
+        width: 50px;
+        min-width: 50px;
+        max-width: 60px;
+    }
+
+    .dim-actions {
+        flex: 0 0 auto;
+    }
+
+    // Odoo attribute rows
+    .o_crm_product_configurator_table .o_row {
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .o_crm_product_configurator_table .o_form_label {
+        width: 110px;
+        min-width: 110px;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+    }
+
+    .o_crm_product_configurator_table .o_field_widget {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .o_crm_product_configurator_table .input-group {
+        flex-wrap: nowrap !important;
+    }
+}
+
+// ==========================================================================
+// 💻 LAPTOP / DESKTOP  (≥992px) – exact original look, do NOT change
+// ==========================================================================
+@media (min-width: 992px) {
+
+    .dim-row {
+        flex-wrap: wrap !important;
+        row-gap: 8px;
+    }
+
+    .dim-field {
+        flex: 0 0 auto;
+    }
+
+    .dim-input-group {
+        width: 130px;
+        flex: 0 0 130px;
+        max-width: 130px;
+    }
+
+    .dim-select {
+        width: 58px;
+        min-width: 58px;
+    }
+
+    .dim-label {
+        font-size: 13px;
+    }
+}

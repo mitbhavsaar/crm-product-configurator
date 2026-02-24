@@ -35,7 +35,7 @@ export class CrmProductMany2One extends Many2OneField {
     get configurationButtonHelp() {
         return _t("Edit Product Configuration");
     }
-  
+
     onProductTemplateChange(ev) {
         const selectedId = ev.detail.value?.id;
         const selectedName = ev.detail.value?.display_name;
@@ -79,24 +79,73 @@ export class CrmProductMany2One extends Many2OneField {
     }
 
     async _openConfigurator(edit = false) {
-        
+
         const record = this.props.record;
         const templateId = record?.data?.product_template_id?.[0];
         if (!templateId) return;
 
-        const ptavRecords = record.data.product_template_attribute_value_ids?.records || [];
-        let ptavIds = ptavRecords.map(r => r.resId);
+        let ptavIds = [];
         let customAttributes = [];
 
-        if (edit) {
-            const noVariantRecords = record.data.product_no_variant_attribute_value_ids?.records || [];
-            ptavIds = ptavIds.concat(noVariantRecords.map(r => r.resId));
+        // START: Bulletproof Robust Fetch Logic
+        // In Odoo 18, resId might be in record.resId or record.data.id
+        const resId = record.resId || (record.data && typeof record.data.id === 'number' ? record.data.id : false);
 
-            customAttributes = (record.data.product_custom_attribute_value_ids?.records || []).map(r => ({
-                ptavId: r.data.custom_product_template_attribute_value_id?.[0],
-                value: r.data.custom_value,
-            }));
+        if (resId) {
+            try {
+                // Fetching Standard and No-Variant attributes
+                const results = await this.orm.read('crm.material.line', [resId], [
+                    'product_template_attribute_value_ids',
+                    'product_no_variant_attribute_value_ids',
+                    'product_custom_attribute_value_ids'
+                ]);
+
+                if (results && results.length > 0) {
+                    const lineData = results[0];
+                    const variantPtavIds = lineData.product_template_attribute_value_ids || [];
+                    const noVariantPtavIds = lineData.product_no_variant_attribute_value_ids || [];
+
+                    // Merge and cleanup IDs
+                    ptavIds = [...new Set([...variantPtavIds, ...noVariantPtavIds])].filter(id => typeof id === 'number');
+
+                    // Fetching Custom Attribute Values (e.g. Length, Width text)
+                    const customValueIds = lineData.product_custom_attribute_value_ids || [];
+                    if (customValueIds.length > 0) {
+                        const customValues = await this.orm.read('product.attribute.custom.value', customValueIds, [
+                            'custom_product_template_attribute_value_id',
+                            'custom_value'
+                        ]);
+                        customAttributes = customValues.map(cv => {
+                            const ptavVal = cv.custom_product_template_attribute_value_id;
+                            return {
+                                ptavId: Array.isArray(ptavVal) ? ptavVal[0] : ptavVal,
+                                value: cv.custom_value
+                            };
+                        }).filter(attr => attr.ptavId && attr.value);
+                    }
+                }
+            } catch (err) {
+                console.error("Robust fetch failed:", err);
+            }
         }
+
+        // Fallback Logic (if not fetched or first configuration)
+        if (ptavIds.length === 0) {
+            const ptavRecords = record.data.product_template_attribute_value_ids?.records || [];
+            ptavIds = ptavRecords.map(r => r.resId || (Array.isArray(r.data.id) ? r.data.id[0] : r.data.id));
+
+            if (edit || ptavIds.length > 0) {
+                const noVariantRecords = record.data.product_no_variant_attribute_value_ids?.records || [];
+                const noVariantIds = noVariantRecords.map(r => r.resId || (Array.isArray(r.data.id) ? r.data.id[0] : r.data.id));
+                ptavIds = [...new Set([...ptavIds, ...noVariantIds])];
+
+                customAttributes = (record.data.product_custom_attribute_value_ids?.records || []).map(r => ({
+                    ptavId: r.data.custom_product_template_attribute_value_id?.[0] || r.data.custom_product_template_attribute_value_id,
+                    value: r.data.custom_value,
+                })).filter(attr => attr.ptavId);
+            }
+        }
+        // END: Robust Fetch Logic
 
         this.dialog.add(crmProductConfiguratorDialog, {
             productTemplateId: templateId,
@@ -107,11 +156,12 @@ export class CrmProductMany2One extends Many2OneField {
             companyId: record.data.company_id?.[0],
             currencyId: record.data.currency_id?.[0],
             crmLeadId: record?.data?.lead_id?.[0] || false,
+            materialLineId: resId,
             edit,
             save: async (mainProduct, optionalProducts) => {
                 await this.applyProduct(record, mainProduct);
                 for (const opt of optionalProducts || []) {
-                    if (!opt.id || (opt.quantity || 0) <= 0) continue; 
+                    if (!opt.id || (opt.quantity || 0) <= 0) continue;
                     const line = await record.model.root.data.material_line_ids.addNewRecord({ position: 'bottom' });
                     await this.applyProduct(line, opt);
                 }

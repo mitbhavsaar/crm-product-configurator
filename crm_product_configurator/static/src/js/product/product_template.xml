@@ -2,35 +2,123 @@
 <!--Template for Product-->
 <templates xml:space="preserve">
     <t t-name="crm_product_configurator.product">
-        <td class="o_crm_product_configurator_img py-3 px-0">
-            <img
-                t-if="this.props.id"
-                class="w-100"
-                t-att-src="'/web/image/product.product/'+this.props.id+'/image_128'"
-                alt="Product Image"/>
-            <img
-                t-else=""
-                class="w-100"
-                t-att-src="'/web/image/product.template/'+this.props.product_tmpl_id+'/image_128'"
-                alt="Product Image"/>
-        </td>
-        <td class="p-3" t-att-colspan="this.props.optional ? 2:false">
-            <div class="mb-4 text-break" name="o_crm_product_configurator_name">
-                <h5 t-out="this.props.display_name || 'Unnamed Product'" />
-                <div
-                    t-if="this.props.description_sale"
-                    t-out="this.props.description_sale"
-                    class="text-muted small"/>
-                <div t-if="!this.env.isPossibleCombination(this.props)" class="alert alert-warning mt-3">
-                    <span>This option or combination of options is not available</span>
+        <td class="p-4" colspan="4">
+            <!-- PRODUCT HEADER -->
+            <div class="mb-4 pb-3 border-bottom d-flex align-items-center gap-2">
+                <!-- <label class="fw-bold text-break mb-0" style="width: 110px; min-width: 110px; white-space: nowrap;">Product</label> -->
+                <h4 class="fw-bold mb-0 text-dark" t-out="cleanedDisplayName || 'Unnamed Product'" />
+                <div t-if="this.props.description_sale" t-out="this.props.description_sale" class="ms-3 text-muted small"/>
+            </div>
+
+            <div class="row g-4 mt-2">
+                <!-- ATTRIBUTES: Full Width now -->
+                <div class="col-12 pe-4">
+                    <div t-if="!this.env.isPossibleCombination(this.props)" class="alert alert-warning mb-4">
+                        <span>This option or combination of options is not available</span>
+                    </div>
+
+
+
+                    <div class="d-flex flex-wrap gap-2 align-items-start ptal-main-container">
+                        <t t-foreach="this.props.attribute_lines" t-as="ptal" t-key="ptal.id">
+                            <!-- Special: Render Dimensons UI exactly when 'Length' is encountered in sequence -->
+                            <t t-if="this.hasDimensionRows() &amp;&amp; ptal.attribute.name.toLowerCase() === 'length'">
+                                <div t-foreach="this.getDimensionRows()" t-as="row" t-key="row_index" class="dim-row d-flex flex-wrap align-items-center gap-2 mb-3 w-100">
+                                    <!-- Length -->
+                                    <div class="dim-field d-flex align-items-center gap-1">
+                                        <label class="dim-label fw-bold mb-0 flex-shrink-0 fs-6">Length</label>
+                                        <div class="input-group input-group-sm flex-nowrap dim-input-group">
+                                            <input type="text" class="o_input form-control dim-input" t-att-value="row.length"
+                                                t-on-input="(ev) => this.validateNumeric(ev, row_index, 'length')" inputmode="decimal"
+                                                t-on-change="(ev) => this.updateDimensionRow(row_index, 'length', ev.target.value)"
+                                                placeholder="Value"/>
+                                            <select class="form-select px-1 flex-shrink-0 dim-select" t-on-change="(ev) => this.updateDimensionRow(row_index, 'lUomId', ev.target.value)">
+                                                <t t-foreach="this.getUomOptions('length')" t-as="uom" t-key="uom.id">
+                                                    <option t-att-value="uom.id" t-att-selected="uom.id == row.lUomId" t-out="uom.name"/>
+                                                </t>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Width -->
+                                    <div class="dim-field d-flex align-items-center gap-1">
+                                        <label class="dim-label fw-bold mb-0 text-muted flex-shrink-0 fs-6">Width</label>
+                                        <div class="input-group input-group-sm flex-nowrap dim-input-group">
+                                            <input type="text" class="o_input form-control dim-input" t-att-value="row.width"
+                                                t-on-input="(ev) => this.validateNumeric(ev, row_index, 'width')" inputmode="decimal"
+                                                t-on-change="(ev) => this.updateDimensionRow(row_index, 'width', ev.target.value)"
+                                                placeholder="Value"/>
+                                            <select class="form-select px-1 flex-shrink-0 dim-select" t-on-change="(ev) => this.updateDimensionRow(row_index, 'wUomId', ev.target.value)">
+                                                <t t-foreach="this.getUomOptions('width')" t-as="uom" t-key="uom.id">
+                                                    <option t-att-value="uom.id" t-att-selected="uom.id == row.wUomId" t-out="uom.name"/>
+                                                </t>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Quantity -->
+                                    <div class="dim-field d-flex align-items-center gap-1">
+                                        <label class="dim-label fw-bold mb-0 text-muted flex-shrink-0 fs-6">Quantity</label>
+                                        <div class="input-group input-group-sm flex-nowrap dim-input-group">
+                                            <input type="text" class="o_input form-control dim-input" t-att-value="row.qty"
+                                                t-on-input="(ev) => this.validateNumeric(ev, row_index, 'qty')" inputmode="decimal"
+                                                t-on-change="(ev) => this.updateDimensionRow(row_index, 'qty', ev.target.value)"
+                                                placeholder="Value"/>
+                                            <select class="form-select px-1 flex-shrink-0 dim-select" t-on-change="(ev) => this.updateDimensionRow(row_index, 'qUomId', ev.target.value)">
+                                                <t t-foreach="this.getUomOptions('quantity')" t-as="uom" t-key="uom.id">
+                                                    <option t-att-value="uom.id" t-att-selected="uom.id == row.qUomId" t-out="uom.name"/>
+                                                </t>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Add/Remove buttons -->
+                                    <div class="dim-actions d-flex gap-1 align-items-center">
+                                        <button t-if="row_index === this.getDimensionRows().length - 1" class="btn btn-sm btn-link text-primary p-0" t-on-click="() => this.addDimensionRow()" title="Add Row">
+                                            <i class="fa fa-plus-circle fa-lg"/>
+                                        </button>
+                                        <button t-if="this.getDimensionRows().length > 1" class="btn btn-sm btn-link text-danger p-0" t-on-click="() => this.removeDimensionRow(row_index)" title="Remove Row">
+                                            <i class="fa fa-minus-circle fa-lg"/>
+                                        </button>
+                                    </div>
+                                    <!-- Warnings -->
+                                    <t t-if="this.warningState.dimensions[row_index] &amp;&amp; this.warningState.dimensions[row_index].length">
+                                        <span class="text-danger w-100" style="font-size: 11px;">
+                                            <t t-out="this.warningState.dimensions[row_index].length"/>
+                                        </span>
+                                    </t>
+                                    <t t-if="this.warningState.dimensions[row_index] &amp;&amp; this.warningState.dimensions[row_index].width">
+                                        <span class="text-danger w-100" style="font-size: 11px;">
+                                            <t t-out="this.warningState.dimensions[row_index].width"/>
+                                        </span>
+                                    </t>
+                                </div>
+                            </t>
+                            <t t-elif="isVisible(ptal)">
+                                <!-- Check for Paired Color Attribute -->
+                                <t t-set="pairedColor" t-value="getPairedColorAttribute(ptal)"/>
+                                
+                                <t t-if="pairedColor">
+                                <!-- Paired Attributes: stacked on phone, side-by-side on tablet+ -->
+                                    <div class="paired-attribute-group d-flex flex-column flex-md-row w-100 gap-4 align-items-md-center mb-1 px-3">
+                                        <div class="flex-shrink-0">
+                                            <PTAL t-props="getFilteredPTAL(ptal)" productTmplId="this.props.product_tmpl_id"/>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <PTAL t-props="getFilteredPTAL(pairedColor)" productTmplId="this.props.product_tmpl_id"/>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <!-- Standard Rendering -->
+                                    <div t-if="!ptal.attribute.pair_with_previous and ptal_index > 0" class="w-100"></div>
+                                    <PTAL t-props="getFilteredPTAL(ptal)" productTmplId="this.props.product_tmpl_id"/>
+                                </t>
+                            </t>
+                        </t>
+                    </div>
                 </div>
             </div>
-            <t t-foreach="this.props.attribute_lines" t-as="ptal" t-key="ptal.id">
-                <PTAL t-props="ptal" productTmplId="this.props.product_tmpl_id"/>
-            </t>
         </td>
-        <td class="o_crm_product_configurator_qty py-3 px-0 text-end">
-            <div t-if="!this.props.optional" class="input-group justify-content-end">
+        <td class="o_crm_product_configurator_qty py-3 px-0 text-end" t-att-class="{'d-none': hasCustomQty or !this.props.optional}" t-if="this.props.optional">
+            <div class="input-group justify-content-end">
                 <button
                     class="btn btn-secondary d-none d-md-inline-block"
                     aria-label="Remove one"
@@ -50,18 +138,8 @@
                     <i class="fa fa-plus"/>
                 </button>
             </div>
-            <div t-else="">
-                <h5 class="text-nowrap" t-out="getFormattedPrice()"/>
-            </div>
-            <a
-                class="d-block mt-2"
-                role="button"
-                t-if="!this.props.optional &amp;&amp; this.env.mainProductTmplId !== this.props.product_tmpl_id"
-                t-on-click="() => this.env.removeProduct(this.props.product_tmpl_id)">
-                Remove product
-            </a>
         </td>
-        <td class="o_crm_product_configurator_price py-3 px-0 text-end" name="price">
+        <td class="o_crm_product_configurator_price py-3 px-0 text-end d-none" name="price">
             <div t-if="!this.props.optional" class="input-group justify-content-end">
                 <h5 class="text-nowrap" t-out="getFormattedPrice()"/>
             </div>
@@ -74,6 +152,13 @@
                     <i class="fa fa-plus"/> Add
                 </button>
             </div>
+            <a
+                class="d-block mt-2"
+                role="button"
+                t-if="!this.props.optional &amp;&amp; this.env.mainProductTmplId !== this.props.product_tmpl_id"
+                t-on-click="() => this.env.removeProduct(this.props.product_tmpl_id)">
+                Remove product
+            </a>
         </td>
     </t>
 </templates>

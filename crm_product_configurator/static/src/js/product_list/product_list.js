@@ -10,6 +10,7 @@ export class CrmProductList extends Component {
     static props = {
         products: Array,
         areProductsOptional: { type: Boolean, optional: true },
+        dimensionRows: { type: Object, optional: true },
     };
     static defaultProps = {
         areProductsOptional: false,

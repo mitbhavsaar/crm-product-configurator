@@ -2,26 +2,86 @@
 <!--Product configurator dialog template-->
 <templates xml:space="preserve">
     <t t-name="crm_product_configurator.dialog">
-        <Dialog size="size" title="title" contentClass="this.state.optionalProducts.length ? 'h-75' : ''">
-            <CrmProductList t-if="this.state.products.length" products="this.state.products" />
-            <CrmProductList
-                    t-if="this.state.optionalProducts.length"
-                    products="this.state.optionalProducts"
-                    areProductsOptional="true"/>
+        <Dialog size="'xl'" title="title" contentClass="(this.state.optionalProducts.length ? 'h-75 ' : '') + 'o_crm_configurator_dialog_content'">
+            <div class="container-fluid">
+                <div class="row">
+                    <div t-attf-class="#{this.state.profilePdfUrl ? 'col-md-7' : 'col-12'} d-flex flex-column h-100 overflow-auto pe-3">
+                        <CrmProductList t-if="this.state.products.length" products="this.state.products" dimensionRows="this.state.dimensionRows" />
+                        <CrmProductList
+                                t-if="this.state.optionalProducts.length"
+                                products="this.state.optionalProducts"
+                                dimensionRows="this.state.dimensionRows"
+                                areProductsOptional="true"/>
+                    </div>
+                    <div t-if="this.state.profilePdfUrl" class="col-md-5 d-flex flex-column" style="height: 75vh;">
+                        <!-- Custom PDF Toolbar -->
+                        <div class="pdf-viewer-controls d-flex flex-wrap justify-content-between align-items-center p-2 mb-2 bg-light border border-secondary rounded shadow-sm gap-2">
+                            <div class="btn-group shadow-sm">
+                                <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this._changeZoom(0.2)" title="Zoom In">
+                                    <i class="fa fa-search-plus"/>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this._changeZoom(-0.2)" title="Zoom Out">
+                                    <i class="fa fa-search-minus"/>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this._rotatePDF()" title="Rotate Manual">
+                                    <i class="fa fa-repeat"/>
+                                </button>
+                            </div>
+                            
+                            <!-- Editable Zoom Input -->
+                            <div class="input-group input-group-sm shadow-sm" style="width: 100px;">
+                                <input type="number" 
+                                       class="form-control text-center" 
+                                       t-att-value="Math.round(this.state.pdfZoom * 100)" 
+                                       t-on-change="_onZoomInputChange"
+                                       title="Set Zoom Percentage"/>
+                                <span class="input-group-text">%</span>
+                            </div>
+
+                            <div class="d-flex align-items-center">
+                                <a t-att-href="this.state.profilePdfUrl.replace('download=false', 'download=true')" 
+                                   class="btn btn-sm btn-success shadow-sm d-flex align-items-center gap-1" 
+                                   download="specification.pdf"
+                                   title="Click to Download Directly">
+                                    <i class="fa fa-download"/> <b>Download</b>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- PDF Canvas Container (No pink border) -->
+                        <div class="pdf-viewer-container flex-grow-1 overflow-auto border rounded shadow-sm" t-ref="pdfContainer">
+                             <div class="d-inline-flex justify-content-center align-items-center min-w-100 min-h-100 p-2">
+                                <canvas t-ref="pdfCanvas" class="pdf-canvas shadow bg-white"></canvas>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <t t-set-slot="footer">
-                <button
-                    name="crm_product_configurator_confirm_button"
-                    class="btn btn-primary"
-                    t-on-click="onConfirm"
-                    t-att-disabled="!isPossibleConfiguration()">
-                    Confirm
-                </button>
-                <button 
-                    name="crm_product_configurator_cancel_button"
-                    class="btn btn-secondary" 
-                    t-on-click="onDiscard">
-                    Cancel
-                </button>
+                <div t-if="this.state.showConfirmSaveWarning" class="d-flex align-items-center gap-3 w-100">
+                    <span class="text-danger fw-bold ms-auto">Do you want to confirm this?</span>
+                    <button class="btn btn-sm btn-success rounded-circle shadow-sm" t-on-click="onFinalConfirm" title="Yes">
+                        <i class="fa fa-check"/>
+                    </button>
+                    <button class="btn btn-sm btn-danger rounded-circle shadow-sm" t-on-click="onCancelConfirmWarning" title="No">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+                <t t-else="">
+                    <button
+                        name="crm_product_configurator_confirm_button"
+                        class="btn btn-primary"
+                        t-on-click="onConfirm"
+                        t-att-disabled="!isPossibleConfiguration()">
+                        Confirm
+                    </button>
+                    <button 
+                        name="crm_product_configurator_cancel_button"
+                        class="btn btn-secondary" 
+                        t-on-click="onDiscard">
+                        Cancel
+                    </button>
+                </t>
             </t>
         </Dialog>
     </t>

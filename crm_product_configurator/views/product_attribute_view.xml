@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_product_attribute_form_m2o" model="ir.ui.view">
+        <field name="name">product.attribute.form.m2o.selector</field>
+        <field name="model">product.attribute</field>
+        <field name="inherit_id" ref="product.product_attribute_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Insert below Display Type field -->
+            <xpath expr="//field[@name='display_type']" position="after">
+                <field name="m2o_model_id" options="{'no_create': True}" placeholder="Select model" invisible="display_type != 'm2o'"/>
+                <field name="pair_with_previous" invisible="display_type not in ['radio', 'select']"/>
+                <field name="is_gelcoat_required_flag" invisible="display_type not in ['radio', 'select']"/>
+                <field name="is_width_check" invisible="display_type != 'strictly_numeric'"/>
+                <field name="is_quantity" invisible="display_type != 'strictly_numeric'"/>
+                
+                
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
